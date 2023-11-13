@@ -1,9 +1,14 @@
 <template>
     <div>
+       
         <h1>Add Book</h1>
         <v-text-field label="Title" v-model="payload.title"></v-text-field>
         <v-text-field label="Price" v-model="payload.price" type="number"></v-text-field>
         <v-btn @click="add">Add</v-btn>
+        <v-snackbar  v-model="snackbar" color='success' :timeout="2000">
+            <v-icon>mdi-checkbox-marked-circle</v-icon>
+            Add book success !!!
+        </v-snackbar>
     </div>
 </template>
 
@@ -11,10 +16,11 @@
 export default {
     data(){
         return {
+            snackbar: false,
             payload: {
                 title: '',
                 price: null
-            }
+            },
         }
     },
     methods: {
@@ -28,15 +34,21 @@ export default {
             }
             this.axios(options)
                 .then((res) => {
+                    this.payload.title = '';
+                    this.payload.price = null;
+                    this.snackbar = true;
                     console.log(res);
                 })
                 .catch((err) => {
                     console.log(err);
                 });
 
-            this.payload.title = '';
-            this.payload.price = null;
-        }
+            
+        }, 
+        
+        clearSuccessMessage() {
+            this.successMessage = '';
+        },
     }
 }
 </script>

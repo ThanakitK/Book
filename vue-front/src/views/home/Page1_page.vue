@@ -3,20 +3,29 @@
             <v-data-table v-bind:headers="headers" :items="dataApi">
                 <template v-slot:item="row">
                     <tr>
-                        <td v-if="!row.isEditing">{{row.item.title}}</td>
-                        <td v-if="!row.isEditing">{{row.item.price}}</td>
+                        <td v-if="editingItemId !== row.item.id">
+                            {{row.item.title}}
+                            
+                        </td>
+                        <td v-if="editingItemId == row.item.id">
+                            <v-text-field v-model="row.item.title" />
+                        </td>
+                        <td v-if="editingItemId !== row.item.id">
+                            {{row.item.price}}
+                        </td>
+                        <td v-if="editingItemId == row.item.id">
+                            <v-text-field v-model="row.item.price" />
+                        </td>
 
-                        <!-- <td v-if="row.isEditing"><v-text-field v-model="row.item.title" label="Title"></v-text-field></td>
-                        <td v-if="row.isEditing"><v-text-field v-model="row.item.price" label="Price" type="number"></v-text-field></td> -->
                         
-                        <td v-if="!row.isEditing">
-                            <v-btn @click="edit_book(row.item)">edit</v-btn>
+                        <td v-if="editingItemId !== row.item.id">
+                            <v-btn @click="editingItemId = row.item.id">edit</v-btn>
                             <v-btn @click="delete_book(row.item)">delete</v-btn>
                         </td>
-                        <!-- <td v-if="row.isEditing">
+                        <td v-if="editingItemId == row.item.id">
                             <v-btn @click="edit_book(row.item)">save</v-btn>
-                            <v-btn @click="toggleEdit(row.edit_mode)">cancel</v-btn>
-                        </td> -->
+                            <v-btn @click="editingItemId = null">cancel</v-btn>
+                        </td>
                         
                     </tr>
                 </template>
@@ -28,7 +37,7 @@
     export default {
         data(){
             return {
-                edit_mode: [],
+                editingItemId: null,
                 dataApi: [],
                 headers: [{
                     text: 'Title',
@@ -45,7 +54,11 @@
                     {
                         text: '',
                     }
-                ]
+                ],
+                payload: {
+                    title: '',
+                    price: null
+                }
             }
         },
         created(){
@@ -63,22 +76,54 @@
                 });
         },
         methods: {
-            edit_book(item) {
-                console.log(item.id);
+            async edit_book(item) {
+                const price = parseInt(item.price, 10);
+                this.payload.title = item.title
+                this.payload.price = price
+                const options={
+                url:'http://localhost:3000/update/'+item.id,
+                method:'put',
+                data: this.payload
+                }
+                await this.axios(options)
+                .then(() => {
+                    const fetchData={
+                        url:'http://localhost:3000/books',
+                        method:'get',
+                    }
+
+                    return this.axios(fetchData);
+                })
+                .then((res) => {
+                    // Update the dataApi with the fetched data
+                    this.dataApi = res.data;
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+                
+                this.editingItemId = null;
             },
-            delete_book(item) {
+            async delete_book(item) {
                 const options={
                 url:'http://localhost:3000/delete/'+item.id,
                 method:'delete',
                 }
-                this.axios(options)
+                await this.axios(options)
+                .then(() => {
+                    const fetchData={
+                        url:'http://localhost:3000/books',
+                        method:'get',
+                    }
+
+                    return this.axios(fetchData);
+                })
                 .then((res) => {
                     this.dataApi = res.data;
                 })
                 .catch((err) => {
                     console.log(err);
                 });
-                window.location.reload();
             },
 
         }
