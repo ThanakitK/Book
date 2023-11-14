@@ -30,6 +30,10 @@
                     </tr>
                 </template>
             </v-data-table>
+            <v-snackbar  v-model="snackbar" color='success' :timeout="2000">
+                <v-icon>mdi-checkbox-marked-circle</v-icon>
+                    {{ successMessage }}
+            </v-snackbar>
         </div>
     </template>
 
@@ -37,6 +41,8 @@
     export default {
         data(){
             return {
+                snackbar: false,
+                successMessage: '',
                 editingItemId: null,
                 dataApi: [],
                 headers: [{
@@ -87,6 +93,8 @@
                 }
                 await this.axios(options)
                 .then(() => {
+                    this.snackbar = true;
+                    this.successMessage = 'Book updated success !!!';
                     const fetchData={
                         url:'http://localhost:3000/books',
                         method:'get',
@@ -111,6 +119,8 @@
                 }
                 await this.axios(options)
                 .then(() => {
+                    this.snackbar = true;
+                    this.successMessage = 'Book deleted success !!!';
                     const fetchData={
                         url:'http://localhost:3000/books',
                         method:'get',
